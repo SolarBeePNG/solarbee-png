@@ -5,7 +5,7 @@
 | Page | URL | Purpose |
 |---|---|---|
 | Calculator | [calculator.html](https://solarbee-png.vercel.app/calculator.html) | Public lead capture |
-| CRM Portal | [admin.html](https://solarbee-png.vercel.app/admin.html) | Private pipeline (pw: bee2025) |
+| CRM Portal | [admin.html](https://solarbee-png.vercel.app/admin.html) | Private pipeline |
 
 ### Tech stack
 - **Frontend**: plain HTML + CSS + JS (zero build)  
