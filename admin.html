@@ -1,0 +1,131 @@
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;UTF-8&quot;&gt;
+  &lt;title&gt;SolarBee CRM Portal&lt;/title&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;
+  &lt;link href=&quot;https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+  &lt;style&gt;
+    body{margin:0;font-family:Inter;background:#f5f5f5}
+    header{background:linear-gradient(135deg,#ffb400,#ff6a00);color:#fff;padding:1rem;text-align:center}
+    .card{background:#fff;margin:.5rem;border-radius:8px;padding:1rem;box-shadow:0 2px 4px rgba(0,0,0,.1)}
+    input,select,textarea{width:100%;padding:.75rem;margin:.5rem 0;border:1px solid #ddd;border-radius:6px;font-size:1rem;box-sizing:border-box}
+    button{background:#ff6a00;color:#fff;border:none;padding:.75rem 1.5rem;border-radius:6px;cursor:pointer}
+    table{width:100%;border-collapse:collapse;font-size:.85rem}
+    th,td{padding:.3rem;border-bottom:1px solid #ddd;text-align:left}
+    .login{display:flex;flex-direction:column;gap:1rem;margin:2rem auto;max-width:300px}
+    .cost-breakdown{font-size:.8rem;opacity:.7}
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;header&gt;SolarBee CRM Portal&lt;/header&gt;
+
+&lt;!-- &#x1f510; Simple password gate --&gt;
+&lt;div id=&quot;gate&quot; class=&quot;login&quot;&gt;
+  &lt;h3&gt;Admin Access&lt;/h3&gt;
+  &lt;input id=&quot;pwd&quot; type=&quot;password&quot; placeholder=&quot;Password *&quot; /&gt;
+  &lt;button onclick=&quot;checkPwd()&quot;&gt;Enter&lt;/button&gt;
+&lt;/div&gt;
+
+&lt;!-- &#x1f513; Hidden CRM --&gt;
+&lt;div id=&quot;crm&quot; style=&quot;display:none&quot;&gt;
+  &lt;div class=&quot;card&quot;&gt;
+    &lt;h3&gt;Calculator Leads&lt;/h3&gt;
+    &lt;table&gt;
+      &lt;thead&gt;
+        &lt;tr&gt;&lt;th&gt;Name&lt;/th&gt;&lt;th&gt;Company&lt;/th&gt;&lt;th&gt;Email&lt;/th&gt;&lt;th&gt;Monthly Costs&lt;/th&gt;&lt;th&gt;Savings&lt;/th&gt;&lt;th&gt;System&lt;/th&gt;&lt;/tr&gt;
+      &lt;/thead&gt;
+      &lt;tbody id=&quot;leadsList&quot;&gt;&lt;/tbody&gt;
+    &lt;/table&gt;
+  &lt;/div&gt;
+  
+  &lt;div class=&quot;card&quot;&gt;
+    &lt;h3&gt;Add Prospect&lt;/h3&gt;
+    &lt;input id=&quot;name&quot; placeholder=&quot;Contact name&quot;&gt;
+    &lt;input id=&quot;email&quot; placeholder=&quot;Email&quot;&gt;
+    &lt;input id=&quot;company&quot; placeholder=&quot;Company&quot;&gt;
+    &lt;select id=&quot;type&quot;&gt;
+      &lt;option&gt;Commercial&lt;/option&gt;&lt;option&gt;Industrial&lt;/option&gt;&lt;option&gt;Utility&lt;/option&gt;
+    &lt;/select&gt;
+    &lt;input id=&quot;value&quot; placeholder=&quot;e.g. 150K&quot;&gt;
+    &lt;select id=&quot;priority&quot;&gt;
+      &lt;option&gt;Low&lt;/option&gt;&lt;option&gt;Medium&lt;/option&gt;&lt;option&gt;High&lt;/option&gt;
+    &lt;/select&gt;
+    &lt;textarea id=&quot;notes&quot; placeholder=&quot;Notes&quot; rows=&quot;2&quot;&gt;&lt;/textarea&gt;
+    &lt;button onclick=&quot;addProspect()&quot;&gt;Save&lt;/button&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;card&quot;&gt;
+    &lt;h3&gt;CRM Pipeline&lt;/h3&gt;
+    &lt;table&gt;
+      &lt;thead&gt;
+        &lt;tr&gt;&lt;th&gt;Name&lt;/th&gt;&lt;th&gt;Company&lt;/th&gt;&lt;th&gt;Type&lt;/th&gt;&lt;th&gt;Value&lt;/th&gt;&lt;th&gt;Priority&lt;/th&gt;&lt;/tr&gt;
+      &lt;/thead&gt;
+      &lt;tbody id=&quot;prospectsList&quot;&gt;&lt;/tbody&gt;
+    &lt;/table&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;script type=&quot;module&quot;&gt;
+import { createClient } from &apos;https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm&apos;;
+// &#x1f534; REPLACE THESE TWO LINES &#x1f447;
+const SUPABASE_URL = https://abzzufmnpiitrzhpfrgj.supabase.co;;
+const SUPABASE_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFienp1Zm1ucGlpdHJ6aHBmcmdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1MTQxMTksImV4cCI6MjA3MjA5MDExOX0.T6HU4ATs0WR4jmZvoMgy_7tYAW-vuT7o7isWrpy0q3M;;
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+window.checkPwd = function() {
+  if (document.getElementById(&apos;pwd&apos;).value === &apos;bee2025&apos;) {
+    document.getElementById(&apos;gate&apos;).style.display = &apos;none&apos;;
+    document.getElementById(&apos;crm&apos;).style.display = &apos;block&apos;;
+    loadData();
+  } else alert(&apos;Wrong password&apos;);
+}
+
+async function loadData() {
+  // Load calculator leads with PNG cost breakdown
+  const { data: leads } = await supabase.from(&apos;calculator_leads&apos;).select(&apos;*&apos;).order(&apos;created_at&apos;, { ascending: false });
+  document.getElementById(&apos;leadsList&apos;).innerHTML = leads.map(l =&gt; {
+    const totalCosts = (l.monthly_electricity_cost || 0) + (l.monthly_diesel_cost || 0);
+    const costBreakdown = `Grid: &dollar;{l.monthly_electricity_cost || 0} + Diesel: &dollar;{l.monthly_diesel_cost || 0}`;
+    return `&lt;tr&gt;
+      &lt;td&gt;&dollar;{l.name || &apos;Anonymous&apos;}&lt;/td&gt;
+      &lt;td&gt;&dollar;{l.company || &apos;N/A&apos;}&lt;/td&gt;
+      &lt;td&gt;&dollar;{l.email || &apos;N/A&apos;}&lt;/td&gt;
+      &lt;td&gt;PGK &dollar;{totalCosts}&lt;br&gt;&lt;span class=&quot;cost-breakdown&quot;&gt;&dollar;{costBreakdown}&lt;/span&gt;&lt;/td&gt;
+      &lt;td&gt;PGK &dollar;{Math.round(l.calculated_savings || 0)}/yr&lt;/td&gt;
+      &lt;td&gt;&dollar;{Math.round(l.system_size || 0)} kW&lt;/td&gt;
+    &lt;/tr&gt;`;
+  }).join(&apos;&apos;);
+  
+  const { data: prospects } = await supabase.from(&apos;prospects&apos;).select(&apos;*&apos;).order(&apos;created_at&apos;, { ascending: false });
+  document.getElementById(&apos;prospectsList&apos;).innerHTML = prospects.map(p =&gt;
+    `&lt;tr&gt;&lt;td&gt;&dollar;{p.name}&lt;/td&gt;&lt;td&gt;&dollar;{p.company}&lt;/td&gt;&lt;td&gt;&dollar;{p.type}&lt;/td&gt;&lt;td&gt;&dollar;{p.value}&lt;/td&gt;&lt;td&gt;&dollar;{p.priority}&lt;/td&gt;&lt;/tr&gt;`
+  ).join(&apos;&apos;);
+}
+
+window.addProspect = async function() {
+  const name = document.getElementById(&apos;name&apos;).value.trim();
+  const email = document.getElementById(&apos;email&apos;).value.trim();
+  const company = document.getElementById(&apos;company&apos;).value.trim();
+  const type = document.getElementById(&apos;type&apos;).value;
+  const value = document.getElementById(&apos;value&apos;).value;
+  const priority = document.getElementById(&apos;priority&apos;).value;
+  const notes = document.getElementById(&apos;notes&apos;).value;
+  
+  if (!name) return alert(&apos;Name required&apos;);
+  
+  await supabase.from(&apos;prospects&apos;).insert({ 
+    name, email, company, type, value, priority, notes 
+  });
+  
+  document.getElementById(&apos;name&apos;).value = &apos;&apos;;
+  document.getElementById(&apos;email&apos;).value = &apos;&apos;;
+  document.getElementById(&apos;company&apos;).value = &apos;&apos;;
+  document.getElementById(&apos;value&apos;).value = &apos;&apos;;
+  document.getElementById(&apos;notes&apos;).value = &apos;&apos;;
+  
+  loadData();
+}
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
