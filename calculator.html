@@ -1,0 +1,160 @@
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;UTF-8&quot;&gt;
+  &lt;title&gt;SolarBee PNG Calculator&lt;/title&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;
+  &lt;link href=&quot;https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+  &lt;style&gt;
+    body{margin:0;font-family:Inter;background:#f5f5f5;color:#333}
+    header{background:linear-gradient(135deg,#ffb400,#ff6a00);color:#fff;padding:1rem;text-align:center}
+    .container{max-width:800px;margin:0 auto;padding:0 1rem}
+    .card{background:#fff;margin:1rem 0;border-radius:12px;padding:1.5rem;box-shadow:0 4px 12px rgba(0,0,0,.1)}
+    input,select,textarea{width:100%;padding:.75rem;margin:.5rem 0;border:1px solid #ddd;border-radius:6px;font-size:1rem;box-sizing:border-box}
+    button{background:#ff6a00;color:#fff;border:none;padding:.75rem 1.5rem;border-radius:6px;cursor:pointer;font-size:1rem;font-weight:600}
+    .results{background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:1.5rem;border-radius:12px;margin:1rem 0;display:none}
+    .metric{background:rgba(255,255,255,0.1);padding:1rem;border-radius:8px;margin:.5rem 0;text-align:center}
+    .metric-value{font-size:2rem;font-weight:700;display:block}
+    .metric-label{font-size:.9rem;opacity:.9}
+    .cost-note{font-size:.85rem;opacity:.8;margin:.25rem 0}
+    @media (max-width:768px){button,input,select{font-size:.9rem}}
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;header&gt;
+  &lt;h1&gt;&#x1f506; SolarBee PNG Calculator&lt;/h1&gt;
+  &lt;p&gt;Calculate solar savings from PNG Power + diesel generator costs&lt;/p&gt;
+&lt;/header&gt;
+
+&lt;div class=&quot;container&quot;&gt;
+  &lt;div class=&quot;card&quot;&gt;
+    &lt;h3&gt;Your Monthly Power Costs&lt;/h3&gt;
+    &lt;input type=&quot;number&quot; id=&quot;electricityCost&quot; placeholder=&quot;Monthly electricity cost (PGK)&quot; min=&quot;0&quot;&gt;
+    &lt;div class=&quot;cost-note&quot;&gt;PNG Power Ltd bills, connection fees, etc.&lt;/div&gt;
+    
+    &lt;input type=&quot;number&quot; id=&quot;dieselCost&quot; placeholder=&quot;Monthly diesel cost (PGK)&quot; min=&quot;0&quot;&gt;
+    &lt;div class=&quot;cost-note&quot;&gt;Diesel fuel for backup generators&lt;/div&gt;
+    
+    &lt;input type=&quot;number&quot; id=&quot;roof&quot; placeholder=&quot;Available roof area (m&sup2;)&quot; min=&quot;0&quot;&gt;
+    &lt;div class=&quot;cost-note&quot;&gt;Approximate usable roof space for solar panels&lt;/div&gt;
+    
+    &lt;button onclick=&quot;calculate()&quot;&gt;Calculate Solar Savings&lt;/button&gt;
+  &lt;/div&gt;
+
+  &lt;div id=&quot;results&quot; class=&quot;results&quot;&gt;
+    &lt;h2&gt;Your Solar Opportunity&lt;/h2&gt;
+    &lt;div class=&quot;metric&quot;&gt;&lt;span class=&quot;metric-value&quot; id=&quot;totalCurrent&quot;&gt;0&lt;/span&gt;&lt;div class=&quot;metric-label&quot;&gt;Current Total Monthly Costs (PGK)&lt;/div&gt;&lt;/div&gt;
+    &lt;div class=&quot;metric&quot;&gt;&lt;span class=&quot;metric-value&quot; id=&quot;savings&quot;&gt;0&lt;/span&gt;&lt;div class=&quot;metric-label&quot;&gt;Annual Savings with Solar (PGK)&lt;/div&gt;&lt;/div&gt;
+    &lt;div class=&quot;metric&quot;&gt;&lt;span class=&quot;metric-value&quot; id=&quot;size&quot;&gt;0&lt;/span&gt;&lt;div class=&quot;metric-label&quot;&gt;Recommended System Size (kW)&lt;/div&gt;&lt;/div&gt;
+    &lt;div class=&quot;metric&quot;&gt;&lt;span class=&quot;metric-value&quot; id=&quot;payback&quot;&gt;0&lt;/span&gt;&lt;div class=&quot;metric-label&quot;&gt;Investment Payback (years)&lt;/div&gt;&lt;/div&gt;
+    &lt;div class=&quot;metric&quot;&gt;&lt;span class=&quot;metric-value&quot; id=&quot;co2&quot;&gt;0&lt;/span&gt;&lt;div class=&quot;metric-label&quot;&gt;CO&#x2082; Reduction (tonnes/year)&lt;/div&gt;&lt;/div&gt;
+
+    &lt;!-- Contact Form --&gt;
+    &lt;div class=&quot;card&quot; style=&quot;background:#fff;color:#333;margin-top:1rem&quot;&gt;
+      &lt;h3&gt;Get Your Personalized Solar Quote&lt;/h3&gt;
+      &lt;input type=&quot;text&quot; id=&quot;name&quot; placeholder=&quot;Full Name *&quot; required&gt;
+      &lt;input type=&quot;email&quot; id=&quot;email&quot; placeholder=&quot;Email Address *&quot; required&gt;
+      &lt;input type=&quot;text&quot; id=&quot;company&quot; placeholder=&quot;Company / Organization *&quot; required&gt;
+      &lt;textarea id=&quot;details&quot; placeholder=&quot;Brief project description (optional)&quot; rows=&quot;3&quot;&gt;&lt;/textarea&gt;
+      &lt;button onclick=&quot;submitForm()&quot;&gt;Send Quote Request&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;script type=&quot;module&quot;&gt;
+import { createClient } from &apos;https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm&apos;;
+// &#x1f534; REPLACE THESE TWO LINES &#x1f447;
+const SUPABASE_URL = https://abzzufmnpiitrzhpfrgj.supabase.co;;
+const SUPABASE_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFienp1Zm1ucGlpdHJ6aHBmcmdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1MTQxMTksImV4cCI6MjA3MjA5MDExOX0.T6HU4ATs0WR4jmZvoMgy_7tYAW-vuT7o7isWrpy0q3M;;
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let calculatedData = {};
+
+window.calculate = async () =&gt; {
+  const electricityCost = parseFloat(document.getElementById(&apos;electricityCost&apos;).value || 0);
+  const dieselCost = parseFloat(document.getElementById(&apos;dieselCost&apos;).value || 0);
+  const roof = parseFloat(document.getElementById(&apos;roof&apos;).value);
+  
+  const totalMonthlyCost = electricityCost + dieselCost;
+  
+  if (!totalMonthlyCost || !roof) return alert(&apos;Please fill in your monthly costs and roof area&apos;);
+
+  // PNG constants - updated for diesel displacement
+  const avgCostPerKwh = totalMonthlyCost &gt; 0 ? (totalMonthlyCost / (totalMonthlyCost / 1.5)) : 1.2; // Estimate kWh from costs
+  const sunHours = 5.2; // PNG daily average
+  const installCost = 4.5; // PGK per watt
+  const roofFactor = 0.7; // 70% usable roof space
+  const solarEfficiency = 0.85; // System efficiency
+
+  // Calculate system size based on roof constraints and power needs
+  const maxSystemFromRoof = (roof * roofFactor) / 8; // 8m&sup2; per kW
+  const estimatedMonthlyKwh = totalMonthlyCost / 1.2; // Assume avg 1.2 PGK/kWh
+  const neededSystemFromUsage = estimatedMonthlyKwh / (sunHours * 30 * solarEfficiency);
+  
+  const systemSize = Math.min(maxSystemFromRoof, neededSystemFromUsage);
+  
+  // Calculate savings - solar replaces both grid and diesel
+  const monthlyGeneration = systemSize * sunHours * 30 * solarEfficiency;
+  const monthlySavings = Math.min(monthlyGeneration * 1.2, totalMonthlyCost); // Cap at total costs
+  const annualSavings = monthlySavings * 12;
+  
+  // Investment calculation
+  const systemCost = systemSize * 1000 * installCost;
+  const payback = systemCost / annualSavings;
+  const co2Reduction = systemSize * 1.4; // Tonnes CO2 per year per kW
+
+  // Store calculated data
+  calculatedData = {
+    electricityCost,
+    dieselCost,
+    totalMonthlyCost,
+    roof,
+    annualSavings,
+    systemSize,
+    payback,
+    co2Reduction
+  };
+
+  // Display results
+  document.getElementById(&apos;totalCurrent&apos;).textContent = Math.round(totalMonthlyCost);
+  document.getElementById(&apos;savings&apos;).textContent = Math.round(annualSavings);
+  document.getElementById(&apos;size&apos;).textContent = Math.round(systemSize);
+  document.getElementById(&apos;payback&apos;).textContent = payback.toFixed(1);
+  document.getElementById(&apos;co2&apos;).textContent = co2Reduction.toFixed(1);
+  document.getElementById(&apos;results&apos;).style.display = &apos;block&apos;;
+};
+
+window.submitForm = async () =&gt; {
+  const name = document.getElementById(&apos;name&apos;).value.trim();
+  const email = document.getElementById(&apos;email&apos;).value.trim();
+  const company = document.getElementById(&apos;company&apos;).value.trim();
+  const details = document.getElementById(&apos;details&apos;).value;
+  
+  if (!name || !email || !company) return alert(&apos;Name, Email &amp; Company required&apos;);
+
+  await supabase.from(&apos;calculator_leads&apos;).insert({
+    name,
+    email,
+    company,
+    project_details: details,
+    monthly_electricity_cost: calculatedData.electricityCost,
+    monthly_diesel_cost: calculatedData.dieselCost,
+    roof_area: calculatedData.roof,
+    calculated_savings: calculatedData.annualSavings,
+    system_size: calculatedData.systemSize,
+    payback_period: calculatedData.payback,
+    co2_reduction: calculatedData.co2Reduction
+  });
+
+  document.getElementById(&apos;results&apos;).innerHTML = `
+    &lt;div style=&quot;text-align:center;padding:2rem&quot;&gt;
+      &lt;h2&gt;&#x1f389; Thank You!&lt;/h2&gt;
+      &lt;p&gt;We&apos;ll email you a detailed quote within 24 hours.&lt;/p&gt;
+      &lt;p&gt;Your potential savings: &lt;strong&gt;PGK &dollar;{Math.round(calculatedData.annualSavings)} annually&lt;/strong&gt;&lt;/p&gt;
+      &lt;p&gt;Check your inbox (and spam folder) for next steps.&lt;/p&gt;
+    &lt;/div&gt;
+  `;
+};
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
